@@ -7,11 +7,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+
+import java.util.Date;
 
 public class Main extends Application {
     public static void main(String[] args) {
@@ -19,6 +22,8 @@ public class Main extends Application {
     }
     @Override
     public void start(Stage stage) throws Exception {
+        Budget budget = new Budget();
+
         GridPane grid = new GridPane();
         VBox vbox = new VBox();
         TableView table = new TableView();
@@ -32,11 +37,20 @@ public class Main extends Application {
         grid.getRowConstraints().addAll(row);
 
         table.setEditable(true);
-        TableColumn<String, String> transactionDateCol = new TableColumn<>("Date");
-        TableColumn<String, String> transactionTitleCol = new TableColumn<>("Title");
-        TableColumn<String, Double> transactionAmountCol = new TableColumn<>("Amount");
-        TableColumn<String, String> transactionCategoryCol = new TableColumn<>("Category");
+        TableColumn<String, Transaction> transactionDateCol = new TableColumn<>("Date");
+        transactionDateCol.setCellValueFactory(new PropertyValueFactory<>("date"));
+        TableColumn<String, Transaction> transactionTitleCol = new TableColumn<>("Title");
+        transactionTitleCol.setCellValueFactory(new PropertyValueFactory<>("title"));
+        TableColumn<String, Transaction> transactionAmountCol = new TableColumn<>("Amount");
+        transactionAmountCol.setCellValueFactory(new PropertyValueFactory<>("amount"));
+        TableColumn<String, Transaction> transactionCategoryCol = new TableColumn<>("Category");
+        transactionCategoryCol.setCellValueFactory(new PropertyValueFactory<>("category"));
+
         table.getColumns().addAll(transactionDateCol, transactionTitleCol, transactionAmountCol, transactionCategoryCol);
+
+        for(Transaction transaction : budget.getBudget()) {
+            table.getItems().add(transaction);
+        }
 
         grid.add(vbox, 0, 0);
         grid.add(table, 1, 0);

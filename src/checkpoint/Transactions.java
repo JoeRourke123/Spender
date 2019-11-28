@@ -2,7 +2,7 @@ package checkpoint;
 
 import java.util.Date;
 
-public class Transaction {
+public class Transactions {
     private double amount;
     private String category;
     private String title;

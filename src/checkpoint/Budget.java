@@ -2,12 +2,10 @@ package checkpoint;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.text.ParseException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.ListIterator;
 import java.util.Scanner;
-import java.util.Date;
-import java.text.SimpleDateFormat;
 import java.lang.Math;
 
 public class Budget {
@@ -81,15 +79,39 @@ public class Budget {
     }
 
     public void addTransaction(double amount, String category, String title, String date) {
-        this.budget.add(new Transaction(amount, category, title, date));
+        Transaction newTransaction = new Transaction(amount, category, title, date);
+        this.budget.add(newTransaction);
         if(amount < 0) {
             this.incrementTotalOut(amount);
         }
         else {
             this.incrementTotalIn(amount);
         }
+        try {
+            FileWriter writer = new FileWriter("transactions.csv", true);
+            writer.write(newTransaction.toString());
+            writer.close();
+        } catch(IOException e) {
+            System.err.println(e);
+        }
+
     }
 
+    public void removeTransaction(Transaction transaction) {
+        this.budget.remove(transaction);
+        try {
+            FileWriter writer = new FileWriter("transactions.csv", false);
+            writer.write("");
+            writer.close();
+            writer = new FileWriter("transactions.csv", true);
+            for(Transaction transaction1 : this.budget) {
+                writer.write(transaction1.toString() + "\n");
+            }
+        }
+        catch (IOException e) {
+            System.err.println(e);
+        }
+    }
 
     public void incrementTotalIn(double increment) {
         this.setTotalIn(this.getTotalIn() + increment);

@@ -24,8 +24,7 @@ public class Budget {
         Scanner file = new Scanner(new File("transactions.txt"));
         while(file.hasNextLine()) {
             String[] temp = file.nextLine().split(",", 4);
-            SimpleDateFormat format = new SimpleDateFormat("dd-mm-yyyy");
-            this.budget.add(new Transaction(Double.parseDouble(temp[0]),temp[1],temp[2], format.parse(temp[3])));
+            this.budget.add(new Transaction(Double.parseDouble(temp[0]),temp[1],temp[2], temp[3]));
         }
     }
 

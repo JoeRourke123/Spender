@@ -1,1 +1,0 @@
--24.99,Groceries,Transaction Title,23-11-2019

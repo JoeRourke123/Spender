@@ -89,7 +89,7 @@ public class Budget {
         }
         try {
             FileWriter writer = new FileWriter("transactions.csv", true);
-            writer.write(newTransaction.toString());
+            writer.write("\n" + newTransaction.toString());
             writer.close();
         } catch(IOException e) {
             System.err.println(e);

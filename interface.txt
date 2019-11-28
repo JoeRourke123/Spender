@@ -1,0 +1,48 @@
+class Transaction
+- getAmount
+    OUT: returns amount value
+- getCategory
+- getTitle
+- getDate
+    OUT: returns a date object
+- getExpense
+    OUT: returns boolean on whether its an expense or an incoming
+- setAmount
+    IN: a double value, can be positive or negative
+    PROCESS: checks whether value is positive or negative depending on isExpense value then sets amount value to the passed value
+- setCategory
+    IN: a string for the category
+    PROCESS: sets the category attribute
+- setTitle
+    IN: a string for the title
+    PROCESS: sets the title attribute
+- setDate
+    IN: a Date object
+    PROCESS: sets the date attribute
+- toString
+    OUT: string representation to
+
+class Budget
+- getCategoryTotal
+- addTransaction
+    IN: Date date, String title, double amount, String category
+    PROCESS: creates a Transaction object and adds it to the list
+- getCashFlow
+    PROCESS: uses getTotalIn and getTotalOut
+    RETURNS: double cash flow value
+- getTotalIn
+    RETURNS: total ins attribute
+- getTotalOut
+    RETURNS: get total outs
+- incrementTotalIn
+    INS: double amount to increment by
+- incrementTotalOut
+    INS: double amount to increment by, increment by the negative of this value though because the negative Transaction will return negative value
+
+
+class Menu extends javafx.base.Application
+- main
+    PROCESS: runs launch
+- start
+    IN: Primary Stage
+    PROCESS: Runs all the UI stuff and initialses program

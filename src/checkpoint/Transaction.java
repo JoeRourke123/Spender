@@ -55,4 +55,9 @@ public class Transaction {
     public void setTime(String time) {
         this.time = time;
     }
+
+    @Override
+    public String toString() {
+        return String.format("%d, %s, %s, %s", this.amount, this.category, this.title, this.time);
+    }
 }

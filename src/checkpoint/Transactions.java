@@ -6,9 +6,9 @@ public class Transaction {
     private double amount;
     private String category;
     private String title;
-    private Date time;
+    private String time;
 
-    public Transaction(double amount, String category, String title, Date time) {
+    public Transaction(double amount, String category, String title, String time) {
         this.amount = amount;
         this.category = category;
         this.title = title;
@@ -39,11 +39,11 @@ public class Transaction {
         this.title = title;
     }
 
-    public Date getTime() {
+    public String getTime() {
         return this.time;
     }
 
-    public void setTime(Date time) {
+    public void setTime(String time) {
         this.time = time;
     }
 }

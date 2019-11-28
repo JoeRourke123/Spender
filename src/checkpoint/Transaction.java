@@ -58,6 +58,6 @@ public class Transaction {
 
     @Override
     public String toString() {
-        return String.format("%d, %s, %s, %s", this.amount, this.category, this.title, this.time);
+        return String.format("%f,%s,%s,%s", this.amount, this.category, this.title, this.time);
     }
 }

@@ -46,7 +46,7 @@ public class Budget {
             Scanner file = new Scanner(new File("transactions.csv"));
             while(file.hasNextLine()) {
                 String[] temp = file.nextLine().split(",", 4);
-                this.addTransaction(Double.parseDouble(temp[0]), temp[1], temp[2], temp[3]);
+                budget.add(new Transaction(Double.parseDouble(temp[0]), temp[1], temp[2], temp[3]));
                 if(Double.parseDouble(temp[0]) >= 0) {
                     this.incrementTotalIn(Double.parseDouble(temp[0]));
                 }

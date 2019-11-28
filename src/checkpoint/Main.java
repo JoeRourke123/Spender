@@ -11,59 +11,70 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
 public class Main extends Application {
-    public void createPopup(Transaction t) {
-        createPopup(t.getTitle(), t.getAmount(), t.getCategory(), t.getTime());
-    }
+    private Stage stage;
+    private Scene edit, analysis;
+    private Budget budget = new Budget();
 
     public void createPopup() {
-        createPopup("", 0.0, "", "");
-    }
-
-    public void createPopup(String title, double amount, String category, String date) {
         Stage newTransactionStage = new Stage();
-                VBox newTransactionBox = new VBox();
-                newTransactionBox.setSpacing(10);
-                newTransactionBox.setAlignment(Pos.CENTER);
+        VBox newTransactionBox = new VBox();
+        newTransactionBox.setSpacing(10);
+        newTransactionBox.setAlignment(Pos.CENTER);
 
+        TextField titleField = new TextField(), amountField = new TextField(), categoryField = new TextField();
+        titleField.setMaxWidth(150); amountField.setMaxWidth(150); categoryField.setMaxWidth(150);
+        titleField.setPromptText("Title"); amountField.setPromptText("£"); categoryField.setPromptText("Category");
 
-                TextField titleField = new TextField(), amountField = new TextField(), categoryField = new TextField();
-                titleField.setMaxWidth(150); amountField.setMaxWidth(150); categoryField.setMaxWidth(150);
-                titleField.setPromptText("Title"); amountField.setPromptText("£"); categoryField.setPromptText("Category");
+        ToggleGroup inOutGroup = new ToggleGroup();
+        ToggleButton incoming = new ToggleButton("Incoming");
+        incoming.setSelected(true);
+        incoming.setToggleGroup(inOutGroup);
 
-                TextField day = new TextField(), month = new TextField(), year = new TextField();
-                day.setMaxWidth(40); month.setMaxWidth(40); year.setMaxWidth(55);
-                day.setPromptText("DD"); month.setPromptText("MM"); year.setPromptText("YYYY");
-                HBox dateField = new HBox();
-                dateField.getChildren().addAll(day, month, year);
-                dateField.setSpacing(5);
-                dateField.setMaxWidth(150);
+        ToggleButton outgoing = new ToggleButton("Outgoing");
+        outgoing.setToggleGroup(inOutGroup);
 
-                if(!title.isEmpty() && amount != 0 && !category.isEmpty() && !date.isEmpty()) {
-                    titleField.setText(title);
-                    amountField.setText(String.valueOf(amount));
-                    categoryField.setText(category);
-                    String[] splitDate = date.split("-");
-                    day.setText(splitDate[0]); month.setText(splitDate[1]); year.setText(splitDate[2]);
-                }
+        TextField day = new TextField(), month = new TextField(), year = new TextField();
+        day.setMaxWidth(40); month.setMaxWidth(40); year.setMaxWidth(55);
+        day.setPromptText("DD"); month.setPromptText("MM"); year.setPromptText("YYYY");
 
-                Button save = new Button("Save");
+        HBox dateField = new HBox(), incomingOutgoingBox = new HBox();
+        dateField.getChildren().addAll(day, month, year);
+        dateField.setSpacing(5); dateField.setMaxWidth(150);
 
-                newTransactionBox.getChildren().addAll(
-                        titleField, amountField, categoryField,
-                        dateField,
-                        save
+        incomingOutgoingBox.getChildren().addAll(incoming, outgoing);
+        incomingOutgoingBox.setSpacing(5); incomingOutgoingBox.setMaxWidth(150);
+
+        Button save = new Button("Save");
+        save.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent e) {
+                double amount = (inOutGroup.getSelectedToggle().equals(incoming)) ? Double.valueOf(amountField.getText()) : -Double.valueOf(amountField.getText());
+
+                budget.addTransaction(
+                        amount,
+                        categoryField.getText(),
+                        titleField.getText(),
+                        (day.getText() + "-" + month.getText() + "-" + year.getText())
                 );
+            }
+        });
 
-                newTransactionStage.setScene(new Scene(newTransactionBox, 200, 200));
-                newTransactionStage.show();
+        newTransactionBox.getChildren().addAll(
+                titleField,
+                incomingOutgoingBox,
+                amountField, categoryField,
+                dateField,
+                save
+        );
+
+        newTransactionStage.setScene(new Scene(newTransactionBox, 200, 250));
+        newTransactionStage.show();
     }
 
     public static void main(String[] args) {
         launch(args);
     }
-    @Override
-    public void start(Stage stage) throws Exception {
-        Budget budget = new Budget();
+
+    public void buildEdit() {
 
         GridPane grid = new GridPane();
         VBox vbox = new VBox();
@@ -79,11 +90,14 @@ public class Main extends Application {
 
         table.setEditable(true);
         TableColumn<String, Transaction> transactionDateCol = new TableColumn<>("Date");
-        transactionDateCol.setCellValueFactory(new PropertyValueFactory<>("date"));
+        transactionDateCol.setCellValueFactory(new PropertyValueFactory<>("time"));
+
         TableColumn<String, Transaction> transactionTitleCol = new TableColumn<>("Title");
         transactionTitleCol.setCellValueFactory(new PropertyValueFactory<>("title"));
+
         TableColumn<String, Transaction> transactionAmountCol = new TableColumn<>("Amount");
         transactionAmountCol.setCellValueFactory(new PropertyValueFactory<>("amount"));
+
         TableColumn<String, Transaction> transactionCategoryCol = new TableColumn<>("Category");
         transactionCategoryCol.setCellValueFactory(new PropertyValueFactory<>("category"));
 
@@ -113,9 +127,17 @@ public class Main extends Application {
         vbox.getChildren().addAll(totalIns, totalOuts, cashFlow, newTransactionBtn);
 
         stage.setTitle("Budgeting");
-        Scene scene = new Scene(grid, 900, 500);
+        edit = new Scene(grid, 900, 500);
+    }
 
-        stage.setScene(scene);
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        stage = primaryStage;
+
+        buildEdit();
+        // buildAnalysis();
+
+        stage.setScene(edit);
         stage.setResizable(false);
         stage.show();
     }

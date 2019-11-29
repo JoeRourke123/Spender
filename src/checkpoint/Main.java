@@ -1,14 +1,20 @@
 package checkpoint;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.*;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
+
+import java.util.*;
 
 public class Main extends Application {
     private Stage stage;
@@ -130,15 +136,159 @@ public class Main extends Application {
         edit = new Scene(grid, 900, 500);
     }
 
+
+    //Good luck ever reading this, I have created a monster
+    public void buildAnalysis() {
+
+        VBox root = new VBox(5);
+        root.setAlignment(Pos.TOP_CENTER);
+
+        //Layout for categorised data
+        HBox categoryLayout = new HBox(5);
+        categoryLayout.setAlignment(Pos.CENTER_LEFT);
+        //Builds the first table for categories
+        TableView catTable = new TableView();
+        catTable.setPrefWidth(350);
+        catTable.setEditable(true);
+        TableColumn<String, String> categoryColumn = new TableColumn<>("Category");
+        categoryColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+        categoryColumn.prefWidthProperty().bind(catTable.widthProperty().multiply(0.5));
+        TableColumn<String, Double> amountColumn = new TableColumn<>("Amount");
+        amountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
+        amountColumn.prefWidthProperty().bind(catTable.widthProperty().multiply(0.5));
+        catTable.getColumns().add(categoryColumn);
+        catTable.getColumns().add(amountColumn);
+        LinkedList<String> categories = new LinkedList<>();
+        for(Transaction transaction : this.budget.getBudget()) {
+            if(!categories.contains(transaction.getCategory())) {
+                categories.add(transaction.getCategory());
+                catTable.getItems().add(new Category(transaction.getCategory(), this.budget.getCategoryTotal(transaction.getCategory())));
+            }
+        }
+        //Builds PieCharts with categorised data
+        PieChart categoryIncomePie = new PieChart();
+        PieChart categoryExpensePie = new PieChart();
+        ObservableList<PieChart.Data> categoryIncomeData = FXCollections.observableArrayList();
+        ObservableList<PieChart.Data> categoryExpenseData = FXCollections.observableArrayList();
+        for (String next : categories) {
+            if (this.budget.getCategoryTotal(next) >= 0) {
+                categoryIncomeData.add(new PieChart.Data(next, this.budget.getCategoryTotal(next)));
+            } else {
+                categoryExpenseData.add(new PieChart.Data(next, this.budget.getCategoryTotal(next)));
+            }
+        }
+        categoryIncomePie.setData(categoryIncomeData);
+        categoryExpensePie.setData(categoryExpenseData);
+
+        //Layout for raw data
+        HBox overallLayout = new HBox(5);
+        //Builds the second table with raw data
+        TableView table = new TableView();
+        table.setPrefWidth(350);
+        table.setEditable(true);
+        TableColumn<String, Transaction> transactionDateCol = new TableColumn<>("Date");
+        transactionDateCol.setCellValueFactory(new PropertyValueFactory<>("time"));
+        transactionDateCol.prefWidthProperty().bind(table.widthProperty().multiply(0.25));
+        TableColumn<String, Transaction> transactionTitleCol = new TableColumn<>("Title");
+        transactionTitleCol.setCellValueFactory(new PropertyValueFactory<>("title"));
+        transactionTitleCol.prefWidthProperty().bind(table.widthProperty().multiply(0.25));
+        TableColumn<String, Transaction> transactionAmountCol = new TableColumn<>("Amount");
+        transactionAmountCol.setCellValueFactory(new PropertyValueFactory<>("amount"));
+        transactionAmountCol.prefWidthProperty().bind(table.widthProperty().multiply(0.25));
+        TableColumn<String, Transaction> transactionCategoryCol = new TableColumn<>("Category");
+        transactionCategoryCol.setCellValueFactory(new PropertyValueFactory<>("category"));
+        transactionCategoryCol.prefWidthProperty().bind(table.widthProperty().multiply(0.25));
+        table.getColumns().addAll(transactionDateCol, transactionTitleCol, transactionAmountCol, transactionCategoryCol);
+        for(Transaction transaction : budget.getBudget()) {
+            table.getItems().add(transaction);
+        }
+        //Builds PieCharts with raw data
+        PieChart incomePie = new PieChart();
+        PieChart expensePie = new PieChart();
+        ObservableList<PieChart.Data> incomeData = FXCollections.observableArrayList();
+        ObservableList<PieChart.Data> expenseData = FXCollections.observableArrayList();
+        for(Transaction transaction : this.budget.getBudget()) {
+            if(transaction.getAmount() >= 0) {
+                incomeData.add(new PieChart.Data(transaction.getTitle(), transaction.getAmount()));
+            }
+            else {
+                expenseData.add(new PieChart.Data(transaction.getTitle(), transaction.getAmount()));
+            }
+        }
+        incomePie.setData(incomeData);
+        expensePie.setData(expenseData);
+
+        //Layout for labelled data
+        HBox totalLayout = new HBox(100);
+        //Set the labels text and size
+        Label totalInOut = new Label("The total income:   £" + this.budget.getTotalIn() + "\nThe total expense: £" + this.budget.getTotalOut());
+        totalInOut.setFont(Font.font("Arial", 30));
+        Label totals = new Label("The total number of transactions: " + this.budget.getBudget().size() + "\nThe total profits: £" + this.budget.getCashFlow());
+        totals.setFont(Font.font("Arial", 30));
+
+        //Populate the layouts
+        totalLayout.getChildren().addAll(totalInOut, totals);
+        overallLayout.getChildren().addAll(table, incomePie, expensePie);
+        categoryLayout.getChildren().addAll(catTable, categoryIncomePie, categoryExpensePie);
+
+
+        //USE THIS BUTTON TO CHANGE THE SCENE
+        //THIS DOESNT WORK FOR SOME REASON ITS SELECTING THE TABLE CONSTANTLY ???
+        Button changeScene = new Button("Edit View");
+        changeScene.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent e) {
+                buildEdit();
+            }
+        });
+
+        //Root layout, populate with other layouts and button
+        root.getChildren().addAll(categoryLayout, overallLayout, totalLayout, changeScene);
+
+        Scene scene = new Scene(root);
+
+        stage.setTitle("Budgeting");
+        stage.setScene(scene);
+        stage.setResizable(false);
+        stage.show();
+
+
+    }
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         stage = primaryStage;
 
-        buildEdit();
-        // buildAnalysis();
+        //buildEdit();
+        buildAnalysis();
 
         stage.setScene(edit);
         stage.setResizable(false);
         stage.show();
+    }
+
+    public class Category {
+        private String name;
+        private double amount;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public double getAmount() {
+            return amount;
+        }
+
+        public void setAmount(double amount) {
+            this.amount = amount;
+        }
+
+        Category(String name, double amount) {
+            this.name = name;
+            this.amount = amount;
+        }
     }
 }

@@ -14,12 +14,14 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
+import javax.swing.*;
 import java.util.*;
 
 public class Main extends Application {
     private Stage stage;
-    private Scene edit, analysis;
+    private Scene edit, analysis, primaryScene;
     private Budget budget = new Budget();
+    private Button changeScene = new Button();
 
     public void createPopup() {
         Stage newTransactionStage = new Stage();
@@ -232,40 +234,47 @@ public class Main extends Application {
         categoryLayout.getChildren().addAll(catTable, categoryIncomePie, categoryExpensePie);
 
 
-        //USE THIS BUTTON TO CHANGE THE SCENE
-        //THIS DOESNT WORK FOR SOME REASON ITS SELECTING THE TABLE CONSTANTLY ???
-        Button changeScene = new Button("Edit View");
-        changeScene.setOnAction(new EventHandler<ActionEvent>() {
-            @Override public void handle(ActionEvent e) {
-                buildEdit();
-            }
-        });
+        //Button used to change between analysis and edit view
+        changeScene.setText("Edit View");
 
         //Root layout, populate with other layouts and button
         root.getChildren().addAll(categoryLayout, overallLayout, totalLayout, changeScene);
 
-        Scene scene = new Scene(root);
-
-        stage.setTitle("Budgeting");
-        stage.setScene(scene);
-        stage.setResizable(false);
-        stage.show();
-
-
+        analysis = new Scene(root);
     }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         stage = primaryStage;
 
-        //buildEdit();
-        buildAnalysis();
+        //Setup the button to change scene
+        changeScene.setOnAction(new ChangeScene());
 
-        stage.setScene(edit);
+        //Initially set to analysis scene
+        buildAnalysis();
+        primaryScene = analysis;
+
+        stage.setScene(primaryScene);
         stage.setResizable(false);
         stage.show();
     }
 
+    //Class for changing scene that can be used in both scenes
+    class ChangeScene implements EventHandler<ActionEvent> {
+        @Override public void handle(ActionEvent e) {
+            if(primaryScene == analysis) {
+                buildEdit();
+                stage.setScene(edit);
+            }
+            else {
+                buildAnalysis();
+                stage.setScene(analysis);
+            }
+        }
+    }
+
+    //Class needed for each category so I could add it to the table
+    //Better methods/suggestions for doing this would be appreciated
     public class Category {
         private String name;
         private double amount;

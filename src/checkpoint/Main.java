@@ -14,7 +14,6 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-import javax.swing.*;
 import java.util.*;
 
 public class Main extends Application {
@@ -246,7 +245,7 @@ public class Main extends Application {
         buildAnalysis();
         buildEdit();
 
-        stage.setScene(analysis);
+        stage.setScene(edit);
         stage.setResizable(false);
         stage.show();
     }

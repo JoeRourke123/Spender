@@ -19,9 +19,8 @@ import java.util.*;
 
 public class Main extends Application {
     private Stage stage;
-    private Scene edit, analysis, primaryScene;
+    private Scene edit, analysis;
     private Budget budget = new Budget();
-    private Button changeScene = new Button();
 
     public void createPopup() {
         Stage newTransactionStage = new Stage();
@@ -233,12 +232,8 @@ public class Main extends Application {
         overallLayout.getChildren().addAll(table, incomePie, expensePie);
         categoryLayout.getChildren().addAll(catTable, categoryIncomePie, categoryExpensePie);
 
-
-        //Button used to change between analysis and edit view
-        changeScene.setText("Edit View");
-
         //Root layout, populate with other layouts and button
-        root.getChildren().addAll(categoryLayout, overallLayout, totalLayout, changeScene);
+        root.getChildren().addAll(categoryLayout, overallLayout, totalLayout);
 
         analysis = new Scene(root);
     }
@@ -247,30 +242,13 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
         stage = primaryStage;
 
-        //Setup the button to change scene
-        changeScene.setOnAction(new ChangeScene());
-
         //Initially set to analysis scene
         buildAnalysis();
-        primaryScene = analysis;
+        buildEdit();
 
-        stage.setScene(primaryScene);
+        stage.setScene(analysis);
         stage.setResizable(false);
         stage.show();
-    }
-
-    //Class for changing scene that can be used in both scenes
-    class ChangeScene implements EventHandler<ActionEvent> {
-        @Override public void handle(ActionEvent e) {
-            if(primaryScene == analysis) {
-                buildEdit();
-                stage.setScene(edit);
-            }
-            else {
-                buildAnalysis();
-                stage.setScene(analysis);
-            }
-        }
     }
 
     //Class needed for each category so I could add it to the table

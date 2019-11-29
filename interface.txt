@@ -38,6 +38,9 @@ class Budget
     INS: double amount to increment by
 - incrementTotalOut
     INS: double amount to increment by, increment by the negative of this value though because the negative Transaction will return negative value
+- averageSpend
+    PROCESS: getTotalOuts / budget.size()
+    OUT: returns this average
 
 
 class Menu extends javafx.base.Application

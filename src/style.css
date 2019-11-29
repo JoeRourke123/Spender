@@ -1,0 +1,6 @@
+.table-row-cell:in {
+    -fx-background-color: mediumseagreen;
+}
+.table-row-cell:out {
+    -fx-background-color: palevioletred;
+}

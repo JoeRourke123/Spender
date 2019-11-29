@@ -3,6 +3,8 @@ package checkpoint;
 import javafx.application.Application;
 import java.text.DecimalFormat;
 
+import javafx.beans.value.ChangeListener;
+import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -16,7 +18,6 @@ public class Main extends Application {
     private Scene edit, analysis;
     private Button switchView = new Button("Analysis");
     private Budget budget = new Budget();
-
     private Label totalIns = new Label(), totalOuts = new Label(), cashFlow = new Label();
 
     private void setLabels() {
@@ -97,12 +98,12 @@ public class Main extends Application {
         TableView table = new TableView();
 
         ColumnConstraints statCol = new ColumnConstraints(), tblCol = new ColumnConstraints();
-        RowConstraints row = new RowConstraints();
+        RowConstraints rows = new RowConstraints();
         statCol.setPercentWidth(25);
         tblCol.setPercentWidth(75);
-        row.setPrefHeight(500);
+        rows.setPrefHeight(500);
         grid.getColumnConstraints().addAll(statCol, tblCol);
-        grid.getRowConstraints().addAll(row);
+        grid.getRowConstraints().addAll(rows);
 
         table.setEditable(true);
         TableColumn<String, Transaction> transactionDateCol = new TableColumn<>("Date");
@@ -156,8 +157,21 @@ public class Main extends Application {
 
         vbox.getChildren().addAll(totalIns, totalOuts, cashFlow, buttonBox, switchView);
 
+        table.setRowFactory(tableView -> {
+            TableRow<Transaction> row = new TableRow<>();
+
+            row.itemProperty().addListener((obs, prevTransaction, newTransaction) -> {
+                if (newTransaction != null) {
+                    row.pseudoClassStateChanged(PseudoClass.getPseudoClass("in"), !newTransaction.getExpense());
+                    row.pseudoClassStateChanged(PseudoClass.getPseudoClass("out"), newTransaction.getExpense());
+                }
+            });
+            return row;
+        });
+
         stage.setTitle("Budgeting");
         edit = new Scene(grid, 900, 500);
+        edit.getStylesheets().add("style.css");
     }
 
     @Override

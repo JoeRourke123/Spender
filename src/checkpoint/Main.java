@@ -2,6 +2,8 @@ package checkpoint;
 
 import javafx.application.Application;
 import java.text.DecimalFormat;
+
+import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -12,19 +14,20 @@ import javafx.stage.Stage;
 public class Main extends Application {
     private Stage stage;
     private Scene edit, analysis;
+    private Button switchView = new Button("Analysis");
     private Budget budget = new Budget();
 
     private Label totalIns = new Label(), totalOuts = new Label(), cashFlow = new Label();
 
-    public void setLabels() {
-        DecimalFormat dec = new DecimalFormat("#############################.00");
+    private void setLabels() {
+        DecimalFormat dec = new DecimalFormat("#.00");
 
         totalIns.setText("Total Incoming: £" + dec.format(budget.getTotalIn()));
         totalOuts.setText("Total Outgoings: £" + dec.format(budget.getTotalOut()));
         cashFlow.setText("Cash Flow: £" + dec.format(budget.getCashFlow()));
     }
 
-    public void createPopup() {
+    private void newTransactionWindow(ActionEvent e) {
         Stage newTransactionStage = new Stage();
         VBox newTransactionBox = new VBox();
         newTransactionBox.setSpacing(10);
@@ -54,7 +57,7 @@ public class Main extends Application {
         incomingOutgoingBox.setSpacing(5); incomingOutgoingBox.setMaxWidth(150);
 
         Button save = new Button("Save");
-        save.setOnAction((e) -> {
+        save.setOnAction((f) -> {
             if(!amountField.getText().isEmpty() && !titleField.getText().isEmpty() && !categoryField.getText().isEmpty()) {
                 double amount = (inOutGroup.getSelectedToggle().equals(incoming)) ? Double.valueOf(amountField.getText()) : -Double.valueOf(amountField.getText());
 
@@ -127,9 +130,7 @@ public class Main extends Application {
         vbox.setSpacing(20);
 
         Button newTransactionBtn = new Button("+ New");
-        newTransactionBtn.setOnAction((e) -> {
-            createPopup();
-        });
+        newTransactionBtn.setOnAction(this::newTransactionWindow);
         newTransactionBtn.setPrefWidth(100);
 
         Button deleteTransactionBtn = new Button("- Delete");
@@ -153,7 +154,7 @@ public class Main extends Application {
         buttonBox.setSpacing(5);
         buttonBox.getChildren().addAll(newTransactionBtn, deleteTransactionBtn);
 
-        vbox.getChildren().addAll(totalIns, totalOuts, cashFlow, buttonBox);
+        vbox.getChildren().addAll(totalIns, totalOuts, cashFlow, buttonBox, switchView);
 
         stage.setTitle("Budgeting");
         edit = new Scene(grid, 900, 500);
@@ -162,6 +163,11 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         stage = primaryStage;
+
+        switchView.setOnAction((e) -> {
+            stage.setScene((switchView.getText().equals("Analysis")) ? analysis : edit);
+            switchView.setText((switchView.getText().equals("Analysis")) ? "Edit" : "Analysis");
+        });
 
         buildEdit();
         // buildAnalysis();

@@ -1,8 +1,7 @@
 package checkpoint;
 
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+import java.text.DecimalFormat;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -14,6 +13,16 @@ public class Main extends Application {
     private Stage stage;
     private Scene edit, analysis;
     private Budget budget = new Budget();
+
+    private Label totalIns = new Label(), totalOuts = new Label(), cashFlow = new Label();
+
+    public void setLabels() {
+        DecimalFormat dec = new DecimalFormat("#############################.00");
+
+        totalIns.setText("Total Incoming: £" + dec.format(budget.getTotalIn()));
+        totalOuts.setText("Total Outgoings: £" + dec.format(budget.getTotalOut()));
+        cashFlow.setText("Cash Flow: £" + dec.format(budget.getCashFlow()));
+    }
 
     public void createPopup() {
         Stage newTransactionStage = new Stage();
@@ -45,21 +54,20 @@ public class Main extends Application {
         incomingOutgoingBox.setSpacing(5); incomingOutgoingBox.setMaxWidth(150);
 
         Button save = new Button("Save");
-        save.setOnAction(new EventHandler<ActionEvent>() {
-            @Override public void handle(ActionEvent e) {
-                if(!amountField.getText().isEmpty() && !titleField.getText().isEmpty() && !categoryField.getText().isEmpty()) {
-                    double amount = (inOutGroup.getSelectedToggle().equals(incoming)) ? Double.valueOf(amountField.getText()) : -Double.valueOf(amountField.getText());
+        save.setOnAction((e) -> {
+            if(!amountField.getText().isEmpty() && !titleField.getText().isEmpty() && !categoryField.getText().isEmpty()) {
+                double amount = (inOutGroup.getSelectedToggle().equals(incoming)) ? Double.valueOf(amountField.getText()) : -Double.valueOf(amountField.getText());
 
-                    budget.addTransaction(
-                            amount,
-                            categoryField.getText(),
-                            titleField.getText(),
-                            (day.getText() + "-" + month.getText() + "-" + year.getText())
-                    );
+                budget.addTransaction(
+                        amount,
+                        categoryField.getText(),
+                        titleField.getText(),
+                        (day.getText() + "-" + month.getText() + "-" + year.getText())
+                );
 
-                    ((TableView) edit.lookup("TableView")).getItems().add(budget.getBudget().get(budget.getBudget().size() - 1));
-                    newTransactionStage.close();
-                }
+                ((TableView) edit.lookup("TableView")).getItems().add(budget.getBudget().get(budget.getBudget().size() - 1));
+                newTransactionStage.close();
+                setLabels();
             }
         });
 
@@ -80,7 +88,7 @@ public class Main extends Application {
     }
 
     public void buildEdit() {
-
+        setLabels();
         GridPane grid = new GridPane();
         VBox vbox = new VBox();
         TableView table = new TableView();
@@ -118,21 +126,27 @@ public class Main extends Application {
         vbox.setAlignment(Pos.CENTER);
         vbox.setSpacing(20);
 
-        Label totalIns = new Label("Total Incomings: £");
-        Label totalOuts = new Label("Total Outgoings: £");
-        Label cashFlow = new Label("Cash Flow: £");
-        totalIns.setText(totalIns.getText() + "24.54");
-
         Button newTransactionBtn = new Button("+ New");
-        newTransactionBtn.setOnAction(new EventHandler<ActionEvent>() {
-            @Override public void handle(ActionEvent e) {
-                createPopup();
-            }
+        newTransactionBtn.setOnAction((e) -> {
+            createPopup();
         });
         newTransactionBtn.setPrefWidth(100);
 
         Button deleteTransactionBtn = new Button("- Delete");
         deleteTransactionBtn.setPrefWidth(100);
+        deleteTransactionBtn.setDisable(true);
+        deleteTransactionBtn.setOnAction((e) -> {
+            Transaction toDelete = budget.getBudget().get(table.getSelectionModel().getFocusedIndex());
+            table.getItems().remove(toDelete);
+            budget.removeTransaction(toDelete);
+            setLabels();
+        });
+
+        table.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                deleteTransactionBtn.setDisable(false);
+            } else deleteTransactionBtn.setDisable(true);
+        });
 
         HBox buttonBox = new HBox();
         buttonBox.setAlignment(Pos.CENTER);

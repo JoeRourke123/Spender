@@ -30,7 +30,7 @@ public class Budget {
     }
 
     public double getTotalOut() {
-        return totalOut;
+        return Math.abs(totalOut);
     }
 
     public double getTotalIn() {
@@ -61,11 +61,7 @@ public class Budget {
     }
 
     public double getCashFlow() {
-        double sum = 0.0;
-        for(Transaction transaction: this.budget) {
-            sum += transaction.getAmount();
-        }
-        return sum;
+        return getTotalIn() - getTotalOut();
     }
 
     public double getCategoryTotal(String category) {
@@ -81,31 +77,44 @@ public class Budget {
     public void addTransaction(double amount, String category, String title, String date) {
         Transaction newTransaction = new Transaction(amount, category, title, date);
         this.budget.add(newTransaction);
-        if(amount < 0) {
-            this.incrementTotalOut(amount);
+        if(newTransaction.getExpense()) {
+            this.incrementTotalOut(Math.abs(amount));
         }
         else {
             this.incrementTotalIn(amount);
         }
+
+        appendToFile(newTransaction);
+    }
+
+    public void appendToFile(Transaction t) {
         try {
             FileWriter writer = new FileWriter("transactions.csv", true);
-            writer.write("\n" + newTransaction.toString());
+
+            String toWrite = (getBudget().indexOf(t) == 0) ? t.toString() : "\n" + t.toString();
+
+            writer.write(toWrite);
             writer.close();
         } catch(IOException e) {
             System.err.println(e);
         }
-
     }
 
     public void removeTransaction(Transaction transaction) {
         this.budget.remove(transaction);
         try {
-            FileWriter writer = new FileWriter("transactions.csv", false);
+            FileWriter writer = new FileWriter("transactions.csv");
             writer.write("");
             writer.close();
-            writer = new FileWriter("transactions.csv", true);
-            for(Transaction transaction1 : this.budget) {
-                writer.write(transaction1.toString() + "\n");
+
+            for(Transaction t : getBudget()) {
+                appendToFile(t);
+            }
+
+            if(transaction.getExpense()) {
+                decrementTotalOut(transaction.getAmount());
+            } else {
+                decrementTotalIn(transaction.getAmount());
             }
         }
         catch (IOException e) {

@@ -56,6 +56,8 @@ public class Transaction {
         this.time = time;
     }
 
+    public boolean getExpense() { return amount < 0; }
+
     @Override
     public String toString() {
         return String.format("%f,%s,%s,%s", this.amount, this.category, this.title, this.time);

@@ -47,14 +47,19 @@ public class Main extends Application {
         Button save = new Button("Save");
         save.setOnAction(new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent e) {
-                double amount = (inOutGroup.getSelectedToggle().equals(incoming)) ? Double.valueOf(amountField.getText()) : -Double.valueOf(amountField.getText());
+                if(!amountField.getText().isEmpty() && !titleField.getText().isEmpty() && !categoryField.getText().isEmpty()) {
+                    double amount = (inOutGroup.getSelectedToggle().equals(incoming)) ? Double.valueOf(amountField.getText()) : -Double.valueOf(amountField.getText());
 
-                budget.addTransaction(
-                        amount,
-                        categoryField.getText(),
-                        titleField.getText(),
-                        (day.getText() + "-" + month.getText() + "-" + year.getText())
-                );
+                    budget.addTransaction(
+                            amount,
+                            categoryField.getText(),
+                            titleField.getText(),
+                            (day.getText() + "-" + month.getText() + "-" + year.getText())
+                    );
+
+                    ((TableView) edit.lookup("TableView")).getItems().add(budget.getBudget().get(budget.getBudget().size() - 1));
+                    newTransactionStage.close();
+                }
             }
         });
 
@@ -118,13 +123,23 @@ public class Main extends Application {
         Label cashFlow = new Label("Cash Flow: £");
         totalIns.setText(totalIns.getText() + "24.54");
 
-        Button newTransactionBtn = new Button("+ New Transaction");
+        Button newTransactionBtn = new Button("+ New");
         newTransactionBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override public void handle(ActionEvent e) {
                 createPopup();
             }
         });
-        vbox.getChildren().addAll(totalIns, totalOuts, cashFlow, newTransactionBtn);
+        newTransactionBtn.setPrefWidth(100);
+
+        Button deleteTransactionBtn = new Button("- Delete");
+        deleteTransactionBtn.setPrefWidth(100);
+
+        HBox buttonBox = new HBox();
+        buttonBox.setAlignment(Pos.CENTER);
+        buttonBox.setSpacing(5);
+        buttonBox.getChildren().addAll(newTransactionBtn, deleteTransactionBtn);
+
+        vbox.getChildren().addAll(totalIns, totalOuts, cashFlow, buttonBox);
 
         stage.setTitle("Budgeting");
         edit = new Scene(grid, 900, 500);

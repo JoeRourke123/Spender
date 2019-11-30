@@ -281,7 +281,7 @@ public class Main extends Application {
         //Set the labels text and size
         Label totalInOut = new Label("The total income:   £" + this.budget.getTotalIn() + "\nThe total expense: £" + this.budget.getTotalOut());
         totalInOut.setFont(Font.font("Arial", 30));
-        Label totals = new Label("The total number of transactions: " + this.budget.getBudget().size() + "\nThe total profits: £" + this.budget.getCashFlow());
+        Label totals = new Label("The total number of transactions: " + this.budget.getBudget().size() + "\nThe total profits: £" + new DecimalFormat("#.00").format(this.budget.getCashFlow()));
         totals.setFont(Font.font("Arial", 30));
 
         //Populate the layouts

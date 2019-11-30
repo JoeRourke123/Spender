@@ -232,7 +232,7 @@ public class Main extends Application {
             if (this.budget.getCategoryTotal(next) >= 0) {
                 categoryIncomeData.add(new PieChart.Data(next, this.budget.getCategoryTotal(next)));
             } else {
-                categoryExpenseData.add(new PieChart.Data(next, this.budget.getCategoryTotal(next)));
+                categoryExpenseData.add(new PieChart.Data(next, Math.abs(this.budget.getCategoryTotal(next))));
             }
         }
         categoryIncomePie.setData(categoryIncomeData);
@@ -270,7 +270,7 @@ public class Main extends Application {
                 incomeData.add(new PieChart.Data(transaction.getTitle(), transaction.getAmount()));
             }
             else {
-                expenseData.add(new PieChart.Data(transaction.getTitle(), transaction.getAmount()));
+                expenseData.add(new PieChart.Data(transaction.getTitle(), Math.abs(transaction.getAmount())));
             }
         }
         incomePie.setData(incomeData);
@@ -280,12 +280,16 @@ public class Main extends Application {
         HBox totalLayout = new HBox(100);
         //Set the labels text and size
         Label totalInOut = new Label("The total income:   £" + this.budget.getTotalIn() + "\nThe total expense: £" + this.budget.getTotalOut());
-        totalInOut.setFont(Font.font("Arial", 30));
+        totalInOut.setFont(Font.font("Arial", 20));
         Label totals = new Label("The total number of transactions: " + this.budget.getBudget().size() + "\nThe total profits: £" + new DecimalFormat("#.00").format(this.budget.getCashFlow()));
-        totals.setFont(Font.font("Arial", 30));
+        totals.setFont(Font.font("Arial", 20));
+        int count = 0;
+        for(Transaction transaction : this.budget.getBudget()) { if(transaction.getExpense()) { count++; } }
+        Label avg = new Label("The average spend per item: £" + this.budget.getTotalOut()/count);
+        avg.setFont(Font.font("Arial", 20));
 
         //Populate the layouts
-        totalLayout.getChildren().addAll(totalInOut, totals);
+        totalLayout.getChildren().addAll(totalInOut, totals, avg);
         overallLayout.getChildren().addAll(table, incomePie, expensePie);
         categoryLayout.getChildren().addAll(catTable, categoryIncomePie, categoryExpensePie);
 
@@ -296,6 +300,8 @@ public class Main extends Application {
         root.getChildren().addAll(categoryLayout, overallLayout, totalLayout, changeView);
 
         analysis = new Scene(root);
+        analysis.getStylesheets().add("style.css");
+
     }
 
     private void switchAction(ActionEvent e) {

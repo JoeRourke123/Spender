@@ -188,7 +188,6 @@ public class Main extends Application {
             });
             return row;
         });
-        vbox.getChildren().addAll(totalIns, totalOuts, cashFlow, newTransactionBtn);
 
         stage.setTitle("Budgeting");
         edit = new Scene(grid, 900, 500);
@@ -310,10 +309,10 @@ public class Main extends Application {
         });
 
         buildEdit();
-        // buildAnalysis();
+        buildAnalysis();
 
         stage.setScene(edit);
-        stage.setResizable(false);
+//        stage.setResizable(false);
         stage.show();
     }
 

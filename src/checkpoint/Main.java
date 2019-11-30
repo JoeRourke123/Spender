@@ -175,6 +175,8 @@ public class Main extends Application {
         buttonBox.setSpacing(5);
         buttonBox.getChildren().addAll(newTransactionBtn, deleteTransactionBtn);
 
+        Button switchView = new Button("Analysis");
+        switchView.setOnAction(this::switchAction);
         vbox.getChildren().addAll(totalIns, totalOuts, cashFlow, buttonBox, switchView);
 
         table.setRowFactory(tableView -> {
@@ -292,6 +294,10 @@ public class Main extends Application {
         root.getChildren().addAll(categoryLayout, overallLayout, totalLayout);
 
         analysis = new Scene(root);
+    }
+
+    private void switchAction(ActionEvent e) {
+        stage.setScene((switchView.getText().equals("Analysis")) ? analysis : edit);
     }
 
     /**

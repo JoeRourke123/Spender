@@ -297,7 +297,7 @@ public class Main extends Application {
     }
 
     private void switchAction(ActionEvent e) {
-        stage.setScene((switchView.getText().equals("Analysis")) ? analysis : edit);
+        stage.setScene((stage.getScene().equals(edit)) ? analysis : edit);
     }
 
     /**
@@ -308,11 +308,6 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         stage = primaryStage;
-
-        switchView.setOnAction((e) -> {
-            stage.setScene((switchView.getText().equals("Analysis")) ? analysis : edit);
-            switchView.setText((switchView.getText().equals("Analysis")) ? "Edit" : "Analysis");
-        });
 
         buildEdit();
         buildAnalysis();

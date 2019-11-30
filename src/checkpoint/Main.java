@@ -23,7 +23,6 @@ import java.util.*;
 public class Main extends Application {
     private Stage stage;
     private Scene edit, analysis;
-    private Button switchView = new Button("Analysis");
     private Budget budget = new Budget();
     private Label totalIns = new Label(), totalOuts = new Label(), cashFlow = new Label();
 
@@ -144,9 +143,6 @@ public class Main extends Application {
             table.getItems().add(transaction);
         }
 
-        grid.add(vbox, 0, 0);
-        grid.add(table, 1, 0);
-
         vbox.setAlignment(Pos.CENTER);
         vbox.setSpacing(20);
 
@@ -190,6 +186,9 @@ public class Main extends Application {
             });
             return row;
         });
+
+        grid.add(vbox, 0, 0);
+        grid.add(table, 1, 0);
 
         stage.setTitle("Budgeting");
         edit = new Scene(grid, 900, 500);
@@ -290,8 +289,11 @@ public class Main extends Application {
         overallLayout.getChildren().addAll(table, incomePie, expensePie);
         categoryLayout.getChildren().addAll(catTable, categoryIncomePie, categoryExpensePie);
 
+        Button changeView = new Button("Edit");
+        changeView.setOnAction(this::switchAction);
+
         //Root layout, populate with other layouts and button
-        root.getChildren().addAll(categoryLayout, overallLayout, totalLayout);
+        root.getChildren().addAll(categoryLayout, overallLayout, totalLayout, changeView);
 
         analysis = new Scene(root);
     }

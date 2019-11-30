@@ -20,6 +20,10 @@ public class Main extends Application {
     private Budget budget = new Budget();
     private Label totalIns = new Label(), totalOuts = new Label(), cashFlow = new Label();
 
+    /**
+     *  Simply updates the label values on the edit scene to be the current values
+     *  of the total incoming, total outgoing, and cash flow values from the Budget instance
+     */
     private void setLabels() {
         DecimalFormat dec = new DecimalFormat("#.00");
 
@@ -28,6 +32,12 @@ public class Main extends Application {
         cashFlow.setText("Cash Flow: £" + dec.format(budget.getCashFlow()));
     }
 
+    /**
+     *  Creates a new transaction popup window to allow for a new transaction to be added, separated from the rest of
+     *  the code to improve modularity and readability of the code
+     *
+     *  @param  e   An instance of the ActionEvent class, passed by the setOnAction callback from the new Transaction button
+     */
     private void newTransactionWindow(ActionEvent e) {
         Stage newTransactionStage = new Stage();
         VBox newTransactionBox = new VBox();
@@ -91,6 +101,9 @@ public class Main extends Application {
         launch(args);
     }
 
+    /**
+     * Simply defines the structure and elements for the edit view, adding them to the build Scene instance
+     */
     public void buildEdit() {
         setLabels();
         GridPane grid = new GridPane();
@@ -174,6 +187,11 @@ public class Main extends Application {
         edit.getStylesheets().add("style.css");
     }
 
+    /**
+     * Calls the methods to build the separate views' Scene objects, and defines functionality for the switcher button
+     * @param primaryStage  An instance of the stage object, is the main stage for the program and is passed by launch, called from main
+     * @throws Exception
+     */
     @Override
     public void start(Stage primaryStage) throws Exception {
         stage = primaryStage;

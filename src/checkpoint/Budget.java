@@ -5,11 +5,13 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 import java.lang.Math;
 
 public class Budget {
-    private ArrayList<Transaction> budget = new ArrayList<Transaction>();
+    private ArrayList<Transaction> budget = new ArrayList<>();
+    private HashMap<String, Category> categories = new HashMap<>();
 
     private double totalOut;
     private double totalIn;
@@ -38,7 +40,21 @@ public class Budget {
     }
 
     public Budget() {
+        this.loadCategories();
         this.loadFile();
+    }
+
+    public void loadCategories() {
+        try {
+            Scanner file = new Scanner(new File("budgets.csv"));
+
+            while(file.hasNextLine()) {
+                String[] temp = file.nextLine().split(",", 2);
+                categories.put(temp[0], new Category(temp[0], Double.parseDouble(temp[1])));
+            }
+        } catch(FileNotFoundException e) {
+            System.err.println("Categories couldn't be read :(");
+        }
     }
 
     public void loadFile() {
@@ -46,12 +62,18 @@ public class Budget {
             Scanner file = new Scanner(new File("transactions.csv"));
             while(file.hasNextLine()) {
                 String[] temp = file.nextLine().split(",", 4);
-                budget.add(new Transaction(Double.parseDouble(temp[0]), temp[1], temp[2], temp[3]));
-                if(Double.parseDouble(temp[0]) >= 0) {
-                    this.incrementTotalIn(Double.parseDouble(temp[0]));
+                double amount = Double.parseDouble(temp[0]);
+
+                if(categories.containsKey(temp[1])) {
+                    categories.get(temp[1]).addTransaction(amount);
+                }
+
+                budget.add(new Transaction(amount, temp[1], temp[2], temp[3]));
+                if(amount >= 0) {
+                    this.incrementTotalIn(amount);
                 }
                 else {
-                    this.incrementTotalOut(Math.abs(Double.parseDouble(temp[0])));
+                    this.incrementTotalOut(amount);
                 }
             }
         }
@@ -74,6 +96,22 @@ public class Budget {
         return sum;
     }
 
+    public void addCategory(String title, double limit) {
+        categories.put(title, new Category(
+                title, limit, this.getCategoryTotal(title)
+        ));
+
+        appendToFile("budgets", categories.get(title));
+    }
+
+    public Category getCategory(String name) {
+        return categories.get(name);
+    }
+
+    public Category[] getCategories() {
+        return categories.values().toArray(new Category[0]);
+    }
+
     public void addTransaction(double amount, String category, String title, String date) {
         Transaction newTransaction = new Transaction(amount, category, title, date);
         this.budget.add(newTransaction);
@@ -84,18 +122,32 @@ public class Budget {
             this.incrementTotalIn(amount);
         }
 
-        appendToFile(newTransaction);
+        appendToFile("transactions", newTransaction);
     }
 
-    public void appendToFile(Transaction t) {
+    public void appendToFile(String file, Object o) {
         try {
-            FileWriter writer = new FileWriter("transactions.csv", true);
+            FileWriter writer = new FileWriter(file + ".csv", true);
 
-            String toWrite = (getBudget().indexOf(t) == 0) ? t.toString() : "\n" + t.toString();
-
-            writer.write(toWrite);
+            writer.write(o.toString() + "\n");
             writer.close();
         } catch(IOException e) {
+            System.err.println(e);
+        }
+    }
+
+    public void removeCategory(Category category) {
+        categories.remove(category.getName());
+
+        try {
+            FileWriter writer = new FileWriter("budgets.csv");
+            writer.write("");
+            writer.close();
+
+            for(Category c : getCategories()) {
+                appendToFile("budgets", c);
+            }
+        } catch (IOException e) {
             System.err.println(e);
         }
     }
@@ -108,7 +160,7 @@ public class Budget {
             writer.close();
 
             for(Transaction t : getBudget()) {
-                appendToFile(t);
+                appendToFile("transactions", t);
             }
 
             if(transaction.getExpense()) {
@@ -126,7 +178,7 @@ public class Budget {
         this.setTotalIn(this.getTotalIn() + increment);
     }
     public void incrementTotalOut(double increment) {
-        this.setTotalOut(this.getTotalOut() + increment);
+        this.setTotalOut(this.getTotalOut() + Math.abs(increment));
     }
 
     public void decrementTotalIn(double decrement) {

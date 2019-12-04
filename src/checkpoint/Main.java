@@ -3,12 +3,10 @@ package checkpoint;
 import javafx.application.Application;
 import java.text.DecimalFormat;
 
-import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
@@ -85,7 +83,7 @@ public class Main extends Application {
                         (day.getText() + "-" + month.getText() + "-" + year.getText())
                 );
 
-                ((TableView) edit.lookup("TableView")).getItems().add(budget.getBudget().get(budget.getBudget().size() - 1));
+                ((TableView) edit.lookup("#transactionsTable")).getItems().add(budget.getBudget().get(budget.getBudget().size() - 1));
                 newTransactionStage.close();
                 setLabels();
             }
@@ -103,6 +101,41 @@ public class Main extends Application {
         newTransactionStage.show();
     }
 
+    private void newCategoryWindow(ActionEvent e) {
+        Stage newCategoryStage = new Stage();
+        VBox newCategoryBox = new VBox();
+        newCategoryBox.setSpacing(10);
+        newCategoryBox.setAlignment(Pos.CENTER);
+
+        TextField titleField = new TextField(), limitField = new TextField();
+        titleField.setMaxWidth(150); limitField.setMaxWidth(150);
+        titleField.setPromptText("Category Title"); limitField.setPromptText("Budget Limit (£)");
+
+        Button save = new Button("Save");
+        save.setOnAction((f) -> {
+            if(!limitField.getText().isEmpty() && !titleField.getText().isEmpty()) {
+                double limit = Math.abs(Double.valueOf(limitField.getText()));
+
+                budget.addCategory(
+                        titleField.getText(),
+                        limit
+                );
+
+                ((TableView) edit.lookup("#categoriesTable")).getItems().add(budget.getCategory(titleField.getText()));
+                newCategoryStage.close();
+            }
+        });
+
+        newCategoryBox.getChildren().addAll(
+                titleField,
+                limitField,
+                save
+        );
+
+        newCategoryStage.setScene(new Scene(newCategoryBox, 200, 250));
+        newCategoryStage.show();
+    }
+
     public static void main(String[] args) {
         launch(args);
     }
@@ -114,17 +147,18 @@ public class Main extends Application {
         setLabels();
         GridPane grid = new GridPane();
         VBox vbox = new VBox();
-        TableView table = new TableView();
+        TableView transactionsTable = new TableView(), categoriesTable = new TableView();
 
-        ColumnConstraints statCol = new ColumnConstraints(), tblCol = new ColumnConstraints();
+        ColumnConstraints statCol = new ColumnConstraints(), tblCol = new ColumnConstraints(), bdgCol = new ColumnConstraints();
         RowConstraints rows = new RowConstraints();
-        statCol.setPercentWidth(25);
-        tblCol.setPercentWidth(75);
+        statCol.setPercentWidth(30);
+        tblCol.setPercentWidth(45);
+        bdgCol.setPercentWidth(25);
         rows.setPrefHeight(500);
-        grid.getColumnConstraints().addAll(statCol, tblCol);
+        grid.getColumnConstraints().addAll(statCol, tblCol, bdgCol);
         grid.getRowConstraints().addAll(rows);
 
-        table.setEditable(true);
+        transactionsTable.setEditable(true);
         TableColumn<String, Transaction> transactionDateCol = new TableColumn<>("Date");
         transactionDateCol.setCellValueFactory(new PropertyValueFactory<>("time"));
 
@@ -137,33 +171,45 @@ public class Main extends Application {
         TableColumn<String, Transaction> transactionCategoryCol = new TableColumn<>("Category");
         transactionCategoryCol.setCellValueFactory(new PropertyValueFactory<>("category"));
 
-        table.getColumns().addAll(transactionDateCol, transactionTitleCol, transactionAmountCol, transactionCategoryCol);
+        transactionsTable.getColumns().addAll(transactionDateCol, transactionTitleCol, transactionAmountCol, transactionCategoryCol);
 
         for(Transaction transaction : budget.getBudget()) {
-            table.getItems().add(transaction);
+            transactionsTable.getItems().add(transaction);
         }
+
+
+        TableColumn<String, Category> categoryTitleColumn = new TableColumn<>("Category");
+        categoryTitleColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+
+        TableColumn<String, Category> categoryLimitColumn = new TableColumn<>("Budget");
+        categoryLimitColumn.setCellValueFactory(new PropertyValueFactory<>("limit"));
+
+        TableColumn<String, Category> categoryRemainingColumn = new TableColumn<>("Remaining");
+        categoryRemainingColumn.setCellValueFactory(new PropertyValueFactory<>("remaining"));
+
+        categoriesTable.getColumns().addAll(categoryTitleColumn, categoryLimitColumn, categoryRemainingColumn);
+
+        for(Category category : budget.getCategories()) {
+            categoriesTable.getItems().add(category);
+        }
+
 
         vbox.setAlignment(Pos.CENTER);
         vbox.setSpacing(20);
+        vbox.setFillWidth(true);
 
-        Button newTransactionBtn = new Button("+ New");
+        Button newTransactionBtn = new Button("+ Transaction");
         newTransactionBtn.setOnAction(this::newTransactionWindow);
         newTransactionBtn.setPrefWidth(100);
 
-        Button deleteTransactionBtn = new Button("- Delete");
+        Button deleteTransactionBtn = new Button("- Transaction");
         deleteTransactionBtn.setPrefWidth(100);
         deleteTransactionBtn.setDisable(true);
         deleteTransactionBtn.setOnAction((e) -> {
-            Transaction toDelete = budget.getBudget().get(table.getSelectionModel().getFocusedIndex());
-            table.getItems().remove(toDelete);
+            Transaction toDelete = budget.getBudget().get(transactionsTable.getSelectionModel().getFocusedIndex());
+            transactionsTable.getItems().remove(toDelete);
             budget.removeTransaction(toDelete);
             setLabels();
-        });
-
-        table.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            if (newSelection != null) {
-                deleteTransactionBtn.setDisable(false);
-            } else deleteTransactionBtn.setDisable(true);
         });
 
         HBox buttonBox = new HBox();
@@ -171,11 +217,44 @@ public class Main extends Application {
         buttonBox.setSpacing(5);
         buttonBox.getChildren().addAll(newTransactionBtn, deleteTransactionBtn);
 
+        HBox categoryBox = new HBox();
+        categoryBox.setAlignment(Pos.CENTER);
+        categoryBox.setSpacing(5);
+
+        Button newCategoryButton = new Button("+ Category");
+        newCategoryButton.setOnAction(this::newCategoryWindow);
+
+        Button delCategoryButton = new Button("- Category");
+        delCategoryButton.setDisable(true);
+        delCategoryButton.setOnAction((e) -> {
+            Category toDelete = budget.getCategories()[categoriesTable.getSelectionModel().getFocusedIndex()];
+            categoriesTable.getItems().remove(toDelete);
+            budget.removeCategory(toDelete);
+        });
+
+        categoryBox.getChildren().addAll(newCategoryButton, delCategoryButton);
+
+        categoriesTable.setId("categoriesTable");
+        categoriesTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            deleteTransactionBtn.setDisable(true);
+            if (newSelection != null) {
+                delCategoryButton.setDisable(false);
+            } else delCategoryButton.setDisable(true);
+        });
+
+        transactionsTable.setId("transactionsTable");
+        transactionsTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            delCategoryButton.setDisable(true);
+            if (newSelection != null) {
+                deleteTransactionBtn.setDisable(false);
+            } else deleteTransactionBtn.setDisable(true);
+        });
+
         Button switchView = new Button("Analysis");
         switchView.setOnAction(this::switchAction);
-        vbox.getChildren().addAll(totalIns, totalOuts, cashFlow, buttonBox, switchView);
+        vbox.getChildren().addAll(totalIns, totalOuts, cashFlow, buttonBox, categoryBox, switchView);
 
-        table.setRowFactory(tableView -> {
+        transactionsTable.setRowFactory(tableView -> {
             TableRow<Transaction> row = new TableRow<>();
 
             row.itemProperty().addListener((obs, prevTransaction, newTransaction) -> {
@@ -188,7 +267,8 @@ public class Main extends Application {
         });
 
         grid.add(vbox, 0, 0);
-        grid.add(table, 1, 0);
+        grid.add(transactionsTable, 1, 0);
+        grid.add(categoriesTable, 2, 0);
 
         stage.setTitle("Budgeting");
         edit = new Scene(grid, 900, 500);
@@ -239,7 +319,7 @@ public class Main extends Application {
         categoryExpensePie.setData(categoryExpenseData);
 
         //Layout for raw data
-        HBox overallLayout = new HBox(5);
+        HBox overallLayout = new HBox(20);
         //Builds the second table with raw data
         TableView table = new TableView();
         table.setPrefWidth(350);
@@ -277,27 +357,35 @@ public class Main extends Application {
         expensePie.setData(expenseData);
 
         //Layout for labelled data
-        HBox totalLayout = new HBox(100);
+        HBox totalLayout = new HBox(50);
+        totalLayout.setAlignment(Pos.CENTER);
         //Set the labels text and size
-        Label totalInOut = new Label("The total income:   £" + this.budget.getTotalIn() + "\nThe total expense: £" + this.budget.getTotalOut());
-        totalInOut.setFont(Font.font("Arial", 20));
-        Label totals = new Label("The total number of transactions: " + this.budget.getBudget().size() + "\nThe total profits: £" + new DecimalFormat("#.00").format(this.budget.getCashFlow()));
-        totals.setFont(Font.font("Arial", 20));
+        Label totalIn = new Label("Total Income: £" + this.budget.getTotalIn());
+        totalIn.setFont(Font.font("Arial", 14));
+
+        Label totalOut = new Label("Total Outgoings: £" + this.budget.getTotalOut());
+        totalOut.setFont(Font.font("Arial", 14));
+
+        Label totalCF = new Label("Cash Flow: £" + (new DecimalFormat("#.00")).format(this.budget.getCashFlow()));
+        totalCF.setFont(Font.font("Arial", 14));
+
+        Label totals = new Label("Transaction Count: " + this.budget.getBudget().size());
+        totals.setFont(Font.font("Arial", 14));
         int count = 0;
         for(Transaction transaction : this.budget.getBudget()) { if(transaction.getExpense()) { count++; } }
-        Label avg = new Label("The average spend per item: £" + this.budget.getTotalOut()/count);
-        avg.setFont(Font.font("Arial", 20));
-
-        //Populate the layouts
-        totalLayout.getChildren().addAll(totalInOut, totals, avg);
-        overallLayout.getChildren().addAll(table, incomePie, expensePie);
-        categoryLayout.getChildren().addAll(catTable, categoryIncomePie, categoryExpensePie);
+        Label avg = new Label("Average Item Spend: £" + this.budget.getTotalOut()/count);
+        avg.setFont(Font.font("Arial", 14));
 
         Button changeView = new Button("Edit");
         changeView.setOnAction(this::switchAction);
 
+        //Populate the layouts
+        totalLayout.getChildren().addAll(changeView, totalIn, totalOut, totals, totalCF, avg);
+        overallLayout.getChildren().addAll(table, incomePie, expensePie);
+        categoryLayout.getChildren().addAll(catTable, categoryIncomePie, categoryExpensePie);
+
         //Root layout, populate with other layouts and button
-        root.getChildren().addAll(categoryLayout, overallLayout, totalLayout, changeView);
+        root.getChildren().addAll(categoryLayout, overallLayout, totalLayout);
 
         analysis = new Scene(root);
         analysis.getStylesheets().add("style.css");
@@ -323,33 +411,5 @@ public class Main extends Application {
         stage.setScene(edit);
 //        stage.setResizable(false);
         stage.show();
-    }
-
-    //Class needed for each category so I could add it to the table
-    //Better methods/suggestions for doing this would be appreciated
-    public class Category {
-        private String name;
-        private double amount;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public double getAmount() {
-            return amount;
-        }
-
-        public void setAmount(double amount) {
-            this.amount = amount;
-        }
-
-        Category(String name, double amount) {
-            this.name = name;
-            this.amount = amount;
-        }
     }
 }

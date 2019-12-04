@@ -71,6 +71,7 @@ public class Main extends Application {
         incomingOutgoingBox.getChildren().addAll(incoming, outgoing);
         incomingOutgoingBox.setSpacing(5); incomingOutgoingBox.setMaxWidth(150);
 
+        // Move the data from the popup into the window
         Button save = new Button("Save");
         save.setOnAction((f) -> {
             if(!amountField.getText().isEmpty() && !titleField.getText().isEmpty() && !categoryField.getText().isEmpty()) {
@@ -101,6 +102,10 @@ public class Main extends Application {
         newTransactionStage.show();
     }
 
+    /**
+     * Allows the user to add a new category
+     * @param e prompt for the window to appear
+     */
     private void newCategoryWindow(ActionEvent e) {
         Stage newCategoryStage = new Stage();
         VBox newCategoryBox = new VBox();
@@ -111,6 +116,7 @@ public class Main extends Application {
         titleField.setMaxWidth(150); limitField.setMaxWidth(150);
         titleField.setPromptText("Category Title"); limitField.setPromptText("Budget Limit (£)");
 
+        // Move data from the popup into the table
         Button save = new Button("Save");
         save.setOnAction((f) -> {
             if(!limitField.getText().isEmpty() && !titleField.getText().isEmpty()) {
@@ -136,6 +142,10 @@ public class Main extends Application {
         newCategoryStage.show();
     }
 
+    /**
+     * Calls the main JavaFX function
+     * @param args Any arguments passed on the command line (These are ignored)
+     */
     public static void main(String[] args) {
         launch(args);
     }
@@ -409,7 +419,7 @@ public class Main extends Application {
         buildAnalysis();
 
         stage.setScene(edit);
-//        stage.setResizable(false);
+        //stage.setResizable(false);
         stage.show();
     }
 }

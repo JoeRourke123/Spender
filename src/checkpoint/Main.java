@@ -48,7 +48,13 @@ public class Main extends Application {
         newTransactionBox.setSpacing(10);
         newTransactionBox.setAlignment(Pos.CENTER);
 
-        TextField titleField = new TextField(), amountField = new TextField(), categoryField = new TextField();
+        ObservableList<String> categories = FXCollections.observableArrayList();
+        for(Category c : budget.getCategories()) {
+            categories.add(c.getName());
+        }
+        ComboBox categoryField = new ComboBox(categories);
+
+        TextField titleField = new TextField(), amountField = new TextField();
         titleField.setMaxWidth(150); amountField.setMaxWidth(150); categoryField.setMaxWidth(150);
         titleField.setPromptText("Title"); amountField.setPromptText("£"); categoryField.setPromptText("Category");
 
@@ -74,12 +80,12 @@ public class Main extends Application {
         // Move the data from the popup into the window
         Button save = new Button("Save");
         save.setOnAction((f) -> {
-            if(!amountField.getText().isEmpty() && !titleField.getText().isEmpty() && !categoryField.getText().isEmpty()) {
+            if(!amountField.getText().isEmpty() && !titleField.getText().isEmpty() && !categoryField.getValue().equals("Category")) {
                 double amount = (inOutGroup.getSelectedToggle().equals(incoming)) ? Double.valueOf(amountField.getText()) : -Double.valueOf(amountField.getText());
 
                 budget.addTransaction(
                         amount,
-                        categoryField.getText(),
+                        (String) categoryField.getValue(),
                         titleField.getText(),
                         (day.getText() + "-" + month.getText() + "-" + year.getText())
                 );
@@ -268,9 +274,16 @@ public class Main extends Application {
             TableRow<Transaction> row = new TableRow<>();
 
             row.itemProperty().addListener((obs, prevTransaction, newTransaction) -> {
+                System.out.println(newTransaction);
+                System.out.println(prevTransaction);
+                System.out.println(obs);
+
                 if (newTransaction != null) {
                     row.pseudoClassStateChanged(PseudoClass.getPseudoClass("in"), !newTransaction.getExpense());
                     row.pseudoClassStateChanged(PseudoClass.getPseudoClass("out"), newTransaction.getExpense());
+                } else if(newTransaction == null) {
+                    row.pseudoClassStateChanged(PseudoClass.getPseudoClass("in"), false);
+                    row.pseudoClassStateChanged(PseudoClass.getPseudoClass("out"), false);
                 }
             });
             return row;
@@ -294,39 +307,30 @@ public class Main extends Application {
         //Layout for categorised data
         HBox categoryLayout = new HBox(5);
         categoryLayout.setAlignment(Pos.CENTER_LEFT);
-        //Builds the first table for categories
+        //Builds the pie and table for categories
         TableView catTable = new TableView();
+        PieChart categoriesPie = new PieChart();
+        ObservableList<PieChart.Data> categoriesData = FXCollections.observableArrayList();
+
         catTable.setPrefWidth(350);
-        catTable.setEditable(true);
-        TableColumn<String, String> categoryColumn = new TableColumn<>("Category");
-        categoryColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-        categoryColumn.prefWidthProperty().bind(catTable.widthProperty().multiply(0.5));
-        TableColumn<String, Double> amountColumn = new TableColumn<>("Amount");
-        amountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
-        amountColumn.prefWidthProperty().bind(catTable.widthProperty().multiply(0.5));
-        catTable.getColumns().add(categoryColumn);
-        catTable.getColumns().add(amountColumn);
-        LinkedList<String> categories = new LinkedList<>();
-        for(Transaction transaction : this.budget.getBudget()) {
-            if(!categories.contains(transaction.getCategory())) {
-                categories.add(transaction.getCategory());
-                catTable.getItems().add(new Category(transaction.getCategory(), this.budget.getCategoryTotal(transaction.getCategory())));
-            }
+
+        TableColumn<String, Category> categoryTitleColumn = new TableColumn<>("Category");
+        categoryTitleColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+
+        TableColumn<String, Category> categoryLimitColumn = new TableColumn<>("Budget");
+        categoryLimitColumn.setCellValueFactory(new PropertyValueFactory<>("limit"));
+
+        TableColumn<String, Category> categoryRemainingColumn = new TableColumn<>("Remaining");
+        categoryRemainingColumn.setCellValueFactory(new PropertyValueFactory<>("remaining"));
+
+        catTable.getColumns().addAll(categoryTitleColumn, categoryLimitColumn, categoryRemainingColumn);
+
+        for(Category c : budget.getCategories()) {
+            catTable.getItems().add(c);
+            categoriesData.add(new PieChart.Data(c.getName(), c.getLimit()));
         }
-        //Builds PieCharts with categorised data
-        PieChart categoryIncomePie = new PieChart();
-        PieChart categoryExpensePie = new PieChart();
-        ObservableList<PieChart.Data> categoryIncomeData = FXCollections.observableArrayList();
-        ObservableList<PieChart.Data> categoryExpenseData = FXCollections.observableArrayList();
-        for (String next : categories) {
-            if (this.budget.getCategoryTotal(next) >= 0) {
-                categoryIncomeData.add(new PieChart.Data(next, this.budget.getCategoryTotal(next)));
-            } else {
-                categoryExpenseData.add(new PieChart.Data(next, Math.abs(this.budget.getCategoryTotal(next))));
-            }
-        }
-        categoryIncomePie.setData(categoryIncomeData);
-        categoryExpensePie.setData(categoryExpenseData);
+
+        categoriesPie.setData(categoriesData);
 
         //Layout for raw data
         HBox overallLayout = new HBox(20);
@@ -351,8 +355,7 @@ public class Main extends Application {
             table.getItems().add(transaction);
         }
         //Builds PieCharts with raw data
-        PieChart incomePie = new PieChart();
-        PieChart expensePie = new PieChart();
+        PieChart incomePie = new PieChart(), expensePie = new PieChart();
         ObservableList<PieChart.Data> incomeData = FXCollections.observableArrayList();
         ObservableList<PieChart.Data> expenseData = FXCollections.observableArrayList();
         for(Transaction transaction : this.budget.getBudget()) {
@@ -392,7 +395,7 @@ public class Main extends Application {
         //Populate the layouts
         totalLayout.getChildren().addAll(changeView, totalIn, totalOut, totals, totalCF, avg);
         overallLayout.getChildren().addAll(table, incomePie, expensePie);
-        categoryLayout.getChildren().addAll(catTable, categoryIncomePie, categoryExpensePie);
+        categoryLayout.getChildren().addAll(catTable, categoriesPie);
 
         //Root layout, populate with other layouts and button
         root.getChildren().addAll(categoryLayout, overallLayout, totalLayout);

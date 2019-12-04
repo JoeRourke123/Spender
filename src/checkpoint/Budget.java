@@ -9,6 +9,14 @@ import java.util.HashMap;
 import java.util.Scanner;
 import java.lang.Math;
 
+/**
+ * Store of all the transactions that the user has made with useful methods for interacting with the data, such as:
+ *      - Importing and exporting transactions from a file
+ *      - Calculating the sum of each category
+ *      - Handling addition and removal of new categories
+ *      - Adding new transactions
+ *      - Removing unwanted transactions
+ */
 public class Budget {
     private ArrayList<Transaction> budget = new ArrayList<>();
     private HashMap<String, Category> categories = new HashMap<>();
@@ -39,6 +47,9 @@ public class Budget {
         return totalIn;
     }
 
+    /**
+     * Create a new instance of a budget
+     */
     public Budget() {
         this.loadCategories();
         this.loadFile();
